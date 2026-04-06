@@ -16,7 +16,7 @@ const navItems = [
     { label: "Quizzes", icon: BookOpen, href: "/quiz" },
     { label: "Analytics", icon: BarChart2, href: "/dashboard/analytics" },
     { label: "Streaks", icon: Flame, href: "/dashboard/streaks" },
-    { label: "Resume Review", icon: FileText, href: "#" },
+    { label: "Resume Review", icon: FileText, href: "/dashboard/resume" },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -32,7 +32,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     const handleSignOut = async () => { await signOut(); router.push("/"); };
 
-    // ── Theme tokens ─────────────────────────────────────────────────────────
     const t = {
         pageBg: isDark ? "bg-[#0f1629]" : "bg-[#f0f4ff]",
         sidebar: isDark ? "bg-[#0a0f1e] border-white/5" : "bg-white border-gray-200",
@@ -67,10 +66,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return (
         <div className={`min-h-screen ${t.pageBg} text-${isDark ? "white" : "gray-900"} flex transition-colors duration-300`}>
 
-            {/* ── SIDEBAR ─────────────────────────────────────────────────── */}
             <aside className={`fixed top-0 left-0 h-full w-[168px] ${t.sidebar} border-r flex flex-col z-30 transition-colors duration-300`}>
 
-                {/* Logo + theme toggle row */}
                 <div className={`px-4 py-4 border-b ${t.userBorder} flex items-center justify-between`}>
                     <Link href="/" className="flex items-center gap-2 group">
                         <div className="relative">
@@ -91,7 +88,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </button>
                 </div>
 
-                {/* Nav */}
                 <nav className="flex-1 px-3 py-4 space-y-1">
                     {navItems.map(({ label, icon: Icon, href }) => {
                         const active = href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(href);
@@ -108,7 +104,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     })}
                 </nav>
 
-                {/* User section */}
                 <div className={`px-3 py-4 border-t ${t.userBorder} relative`}>
                     <button
                         className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all duration-200 group ${t.userHover}`}
@@ -142,7 +137,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </div>
             </aside>
 
-            {/* ── PAGE CONTENT ─────────────────────────────────────────────── */}
             <main className="ml-[168px] flex-1 min-h-screen overflow-y-auto transition-colors duration-300">
                 {children}
             </main>

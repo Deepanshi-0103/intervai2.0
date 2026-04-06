@@ -13,7 +13,7 @@ import {
 } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
 
-// ── Theme ───────────────────────────────────────────────────────────────────
+// Theme
 // Thin wrapper around next-themes so all pages keep their existing import.
 // next-themes handles SSR, hydration, and localStorage automatically.
 export function useTheme() {
@@ -28,7 +28,7 @@ export function useTheme() {
   return { isDark, toggleTheme, mounted };
 }
 
-// ── Auth listener ────────────────────────────────────────────────────────────
+// Auth listener
 export function useAuthListener() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,7 +44,7 @@ export function useAuthListener() {
   return { user, loading };
 }
 
-// ── Auth functions ────────────────────────────────────────────────────────────
+// Auth functions
 export const signInWithEmail = (email: string, password: string) =>
   signInWithEmailAndPassword(auth, email, password);
 

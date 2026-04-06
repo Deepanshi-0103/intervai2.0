@@ -3,12 +3,14 @@
 import { useEffect, useState } from "react";
 import { useAuthListener, useTheme } from "@/lib/auth";
 import { fetchUserSessions, type SessionSummary } from "@/firebase/fetchSessions";
+import { db } from "@/lib/firebase";
+import { doc, updateDoc } from "firebase/firestore";
 import {
     Mic, ChevronDown, ChevronUp, Loader2, Sparkles,
     Trophy, TrendingUp, AlertCircle, CheckCircle2, ArrowRight,
 } from "lucide-react";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// Types
 interface QuestionFeedback {
     question: string;
     rating: "Excellent" | "Good" | "Fair" | "Needs Work";
@@ -42,7 +44,7 @@ function scoreRing(s: number) {
     return "stroke-red-400";
 }
 
-// ── Score ring SVG ────────────────────────────────────────────────────────────
+// Score ring SVG
 function ScoreRing({ score }: { score: number }) {
     const r = 36, c = 2 * Math.PI * r;
     const offset = c - (score / 100) * c;
@@ -60,7 +62,7 @@ function ScoreRing({ score }: { score: number }) {
     );
 }
 
-// ── Main Component ────────────────────────────────────────────────────────────
+// Main Component
 export default function InterviewsPage() {
     const { user, loading } = useAuthListener();
     const { isDark } = useTheme();
@@ -74,7 +76,15 @@ export default function InterviewsPage() {
     useEffect(() => {
         if (!user) return;
         fetchUserSessions(user.uid)
-            .then(setSessions)
+            .then((loadedSessions) => {
+                setSessions(loadedSessions);
+                // Pre-populate feedbackMap with any feedback already saved in Firestore
+                const initialFeedback: Record<string, Feedback> = {};
+                loadedSessions.forEach((s) => {
+                    if (s.feedback) initialFeedback[s.id] = s.feedback;
+                });
+                setFeedbackMap(initialFeedback);
+            })
             .catch(() => setError("Failed to load sessions. Check Firestore rules."))
             .finally(() => setFetching(false));
     }, [user]);
@@ -125,6 +135,10 @@ export default function InterviewsPage() {
             }
             if (data.feedback) {
                 setFeedbackMap((prev) => ({ ...prev, [session.id]: data.feedback }));
+                // Save it to Firestore so we never have to generate it again
+                updateDoc(doc(db, "interviewSessions", session.id), {
+                    feedback: data.feedback
+                }).catch(console.error);
             }
         } catch (err) {
             console.error("[generateFeedback] network error:", err);
@@ -138,7 +152,6 @@ export default function InterviewsPage() {
     return (
         <div className="p-6 md:p-10 space-y-6">
 
-            {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-blue-500/15 border border-blue-500/20 flex items-center justify-center">

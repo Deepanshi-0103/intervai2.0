@@ -1,25 +1,43 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useAuthListener, useTheme } from "@/lib/auth";
-import { BarChart2, TrendingUp, Target, Brain } from "lucide-react";
+import { BarChart2, TrendingUp, Target, Brain, Loader2 } from "lucide-react";
+import { computeUserSkills, type SkillScore } from "@/lib/skillAnalytics";
 
-const skills = [
-  { name: "System Design", score: 92, bar: "bg-blue-500", badge: "bg-blue-500/10 text-blue-500 border-blue-500/20", desc: "Scalability, distributed systems, architecture patterns" },
-  { name: "Algorithms & DSA", score: 85, bar: "bg-indigo-500", badge: "bg-indigo-500/10 text-indigo-500 border-indigo-500/20", desc: "Sorting, graphs, dynamic programming, complexity analysis" },
-  { name: "Behavioral", score: 78, bar: "bg-orange-500", badge: "bg-orange-500/10 text-orange-500 border-orange-500/20", desc: "STAR method, leadership, conflict resolution" },
-  { name: "Communication", score: 88, bar: "bg-blue-400", badge: "bg-blue-400/10 text-blue-400 border-blue-400/20", desc: "Clarity, structure, active listening" },
-  { name: "Problem Solving", score: 81, bar: "bg-purple-500", badge: "bg-purple-500/10 text-purple-500 border-purple-500/20", desc: "Breaking down problems, edge cases, optimisation" },
-  { name: "Code Quality", score: 76, bar: "bg-cyan-500", badge: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20", desc: "Readability, naming, modularity, testing" },
-];
-
-function scoreColor(s: number) { return s >= 85 ? "text-green-500" : s >= 70 ? "text-yellow-500" : "text-red-500"; }
-function scoreLabel(s: number) { return s >= 85 ? "Strong" : s >= 70 ? "Improving" : "Needs work"; }
-const overallScore = Math.round(skills.reduce((a, s) => a + s.score, 0) / skills.length);
+function scoreColor(s: number) { return s >= 85 ? "text-emerald-400" : s >= 60 ? "text-amber-400" : "text-red-400"; }
+function scoreLabel(s: number) { 
+  if (s === 0) return "No Data";
+  return s >= 85 ? "Strong" : s >= 60 ? "Improving" : "Needs work"; 
+}
 
 export default function AnalyticsPage() {
-  const { user } = useAuthListener();
+  const { user, loading } = useAuthListener();
   const { isDark } = useTheme();
-  if (!user) return null;
+  
+  const [skills, setSkills] = useState<SkillScore[]>([]);
+  const [fetching, setFetching] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    computeUserSkills(user.uid)
+      .then(setSkills)
+      .catch(console.error)
+      .finally(() => setFetching(false));
+  }, [user]);
+
+  if (loading || !user) return null;
+
+  // Calculate overall score (average of all skills that have data > 0)
+  const activeSkills = skills.filter(s => s.score > 0);
+  const overallScore = activeSkills.length > 0
+    ? Math.round(activeSkills.reduce((a, s) => a + s.score, 0) / activeSkills.length)
+    : 0;
+
+  // Find top skill
+  const topSkill = activeSkills.length > 0 
+    ? activeSkills.reduce((prev, curr) => (curr.score > prev.score ? curr : prev)).name
+    : "Take a quiz/interview";
 
   const t = {
     heading: isDark ? "text-white" : "text-gray-900",
@@ -36,7 +54,6 @@ export default function AnalyticsPage() {
 
   return (
     <div className="p-6 md:p-8">
-      {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-1">
           <div className="w-9 h-9 rounded-xl bg-blue-500/15 flex items-center justify-center">
@@ -70,45 +87,59 @@ export default function AnalyticsPage() {
           <div className={`${t.statCard} border rounded-xl px-4 py-3 flex items-center gap-3`}>
             <TrendingUp size={16} className="text-green-400" />
             <div>
-              <p className={`text-[10px] ${t.sub} uppercase tracking-widest`}>Improvement</p>
-              <p className={`text-sm font-bold ${t.heading}`}>+5% this week</p>
+              <p className={`text-[10px] ${t.sub} uppercase tracking-widest`}>Recent Activity</p>
+              <p className={`text-sm font-bold ${t.heading}`}>Keep going!</p>
             </div>
           </div>
           <div className={`${t.statCard} border rounded-xl px-4 py-3 flex items-center gap-3`}>
             <Target size={16} className="text-blue-400" />
             <div>
               <p className={`text-[10px] ${t.sub} uppercase tracking-widest`}>Top Skill</p>
-              <p className={`text-sm font-bold ${t.heading}`}>System Design</p>
+              <p className={`text-sm font-bold truncate ${t.heading}`}>{topSkill}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Skill bars */}
-      <div className={`${t.card} border rounded-2xl p-6 mb-6`}>
+      <div className={`${t.card} border rounded-2xl p-6 mb-6 relative overflow-hidden`}>
         <div className="flex items-center gap-2 mb-6">
           <Brain size={16} className="text-blue-400" />
           <h2 className={`text-base font-semibold ${t.heading}`}>Skill Breakdown</h2>
         </div>
-        <div className="space-y-5">
-          {skills.map(({ name, score, bar, badge, desc }) => (
-            <div key={name}>
-              <div className="flex items-start justify-between mb-2 gap-3">
-                <div>
-                  <p className={`text-sm font-semibold ${t.heading}`}>{name}</p>
-                  <p className={`text-xs ${t.sub} mt-0.5`}>{desc}</p>
+
+        {fetching ? (
+          <div className="space-y-5 animate-pulse">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i}>
+                <div className="h-4 bg-gray-500/20 rounded w-1/3 mb-2" />
+                <div className="h-2 bg-gray-500/10 rounded-full w-full" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-5">
+            {skills.map(({ name, score, bar, badge, desc }) => (
+              <div key={name}>
+                <div className="flex items-start justify-between mb-2 gap-3">
+                  <div>
+                    <p className={`text-sm font-semibold ${t.heading}`}>{name}</p>
+                    <p className={`text-xs ${t.sub} mt-0.5`}>{desc}</p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg border ${score === 0 ? "bg-gray-500/10 text-gray-500 border-gray-500/20" : badge}`}>
+                      {scoreLabel(score)}
+                    </span>
+                    <span className={`text-sm font-bold ${score === 0 ? "text-gray-500" : scoreColor(score)}`}>{score}%</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg border ${badge}`}>{scoreLabel(score)}</span>
-                  <span className={`text-sm font-bold ${scoreColor(score)}`}>{score}%</span>
+                <div className={`h-2 ${t.barBg} rounded-full overflow-hidden`}>
+                  <div className={`h-full ${score > 0 ? bar : "bg-transparent"} rounded-full transition-all duration-700`} style={{ width: `${score}%` }} />
                 </div>
               </div>
-              <div className={`h-2 ${t.barBg} rounded-full overflow-hidden`}>
-                <div className={`h-full ${bar} rounded-full transition-all duration-700`} style={{ width: `${score}%` }} />
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Placeholder */}

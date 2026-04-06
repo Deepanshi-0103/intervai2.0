@@ -12,7 +12,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
-// ── Public helper — call after interview completion ──────────────────────────
+// Public helper — call after interview completion
 export async function recordActivity(uid: string) {
     const today = new Date().toISOString().slice(0, 10);
     const ref = doc(db, "users", uid, "activity", today);
@@ -23,7 +23,7 @@ export async function recordActivity(uid: string) {
     );
 }
 
-// ── Types ────────────────────────────────────────────────────────────────────
+// Types
 type Level = 0 | 1 | 2 | 3 | 4;
 
 export interface StreakStats {
@@ -41,7 +41,7 @@ interface Cell {
     monthStart?: string; // abbreviated month name, set on first cell of that month
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// Helpers
 function toLevel(n: number): Level {
     if (n === 0) return 0;
     if (n === 1) return 1;
@@ -81,7 +81,7 @@ function buildYear(): Cell[] {
     return cells;
 }
 
-// ── Color scales ─────────────────────────────────────────────────────────────
+// Color scales
 const LEVEL_BG_DARK = [
     "bg-white/[0.04] hover:bg-white/10",
     "bg-blue-900/80 hover:bg-blue-800",
@@ -97,7 +97,7 @@ const LEVEL_BG_LIGHT = [
     "bg-green-700 hover:bg-green-800",
 ];
 
-// ── Props ────────────────────────────────────────────────────────────────────
+// Props
 interface Props {
     uid: string;
     /** Increment to force a data refresh (e.g. after recording a new session) */
@@ -107,7 +107,7 @@ interface Props {
     onStatsLoaded?: (stats: StreakStats) => void;
 }
 
-// ── Component ────────────────────────────────────────────────────────────────
+// Component
 export default function StreakHeatmap({ uid, refreshKey = 0, theme = "dark", onStatsLoaded }: Props) {
     const LEVEL_BG = theme === "light" ? LEVEL_BG_LIGHT : LEVEL_BG_DARK;
 
@@ -136,7 +136,6 @@ export default function StreakHeatmap({ uid, refreshKey = 0, theme = "dark", onS
                 return { ...c, count, level: toLevel(count) };
             });
 
-            // Stats
             const active = filled.filter((c) => c.count > 0).length;
 
             const today = new Date().toISOString().slice(0, 10);
@@ -145,7 +144,7 @@ export default function StreakHeatmap({ uid, refreshKey = 0, theme = "dark", onS
                 .filter((c) => c.date <= today)
                 .sort((a, b) => a.date.localeCompare(b.date));
 
-            // ── Current streak: walk backward from today ─────────────────────
+            // Current streak: walk backward from today
             let curStreak = 0;
             for (let i = pastDays.length - 1; i >= 0; i--) {
                 if (pastDays[i].count > 0) {
@@ -155,7 +154,7 @@ export default function StreakHeatmap({ uid, refreshKey = 0, theme = "dark", onS
                 }
             }
 
-            // ── Max streak: forward scan over past days only ──────────────────
+            // Max streak: forward scan over past days only
             let max = 0, cur = 0;
             for (const c of pastDays) {
                 if (c.count > 0) { cur++; max = Math.max(max, cur); } else { cur = 0; }
@@ -184,7 +183,7 @@ export default function StreakHeatmap({ uid, refreshKey = 0, theme = "dark", onS
 
     return (
         <div className="w-full space-y-6">
-            {/* ── Top stats bar ── */}
+            {/* Top stats bar */}
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-sm font-semibold text-white">
                     {loading ? "—" : <><span className="text-blue-400 font-bold text-base">{totalSessions}</span> sessions in the past year</>}
@@ -196,7 +195,7 @@ export default function StreakHeatmap({ uid, refreshKey = 0, theme = "dark", onS
                 </div>
             </div>
 
-            {/* ── Heatmap grid ── */}
+            {/* Heatmap grid */}
             <div className="w-full overflow-x-auto">
                 <div className="min-w-[700px]">
                     {/* Day-of-week labels (left gutter) */}
@@ -244,7 +243,7 @@ export default function StreakHeatmap({ uid, refreshKey = 0, theme = "dark", onS
                 </div>
             </div>
 
-            {/* ── Legend ── */}
+            {/* Legend */}
             <div className="flex items-center gap-2 text-xs text-gray-500">
                 <span>Less</span>
                 {LEVEL_BG.map((cls, i) => (

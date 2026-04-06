@@ -1,4 +1,4 @@
-// ─── Global type augmentation ─────────────────────────────────────────────────
+// Global type augmentation
 // TypeScript's lib.dom.d.ts omits `SpeechRecognition` from the Window interface.
 // We manually declare the constructor signatures here so TypeScript is happy.
 declare global {
@@ -54,7 +54,7 @@ declare global {
     }
 }
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
+// Hook
 import { useCallback, useEffect, useRef, useState } from "react";
 
 interface UseSpeechRecognitionReturn {

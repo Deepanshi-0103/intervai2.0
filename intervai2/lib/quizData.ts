@@ -1,4 +1,4 @@
-// ── Quiz catalog —  9 domains × 3 levels × 5 questions × 4 options ──────────
+// Quiz catalog —  9 domains × 3 levels × 5 questions × 4 options
 
 export type Level = "easy" | "medium" | "hard";
 
@@ -19,7 +19,7 @@ export interface Quiz {
   questions: Record<Level, Question[]>;
 }
 
-// ── Helper: keeps TS happy with literal tuple types ───────────────────────────
+// Helper: keeps TS happy with literal tuple types
 function q(
   text: string,
   options: [string, string, string, string],
@@ -29,10 +29,10 @@ function q(
   return { text, options, correctIndex, explanation };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 export const quizzes: Quiz[] = [
 
-  // ── 1. JavaScript ──────────────────────────────────────────────────────────
+  // 1. JavaScript
   {
     id: "javascript",
     title: "JavaScript",
@@ -122,7 +122,7 @@ export const quizzes: Quiz[] = [
     },
   },
 
-  // ── 2. Python ─────────────────────────────────────────────────────────────
+  // 2. Python
   {
     id: "python",
     title: "Python",
@@ -201,7 +201,7 @@ export const quizzes: Quiz[] = [
     },
   },
 
-  // ── 3. React ──────────────────────────────────────────────────────────────
+  // 3. React
   {
     id: "react",
     title: "React",
@@ -283,7 +283,7 @@ export const quizzes: Quiz[] = [
     },
   },
 
-  // ── 4. Node.js ────────────────────────────────────────────────────────────
+  // 4. Node.js
   {
     id: "nodejs",
     title: "Node.js",
@@ -371,7 +371,7 @@ export const quizzes: Quiz[] = [
     },
   },
 
-  // ── 5. Databases (SQL & NoSQL) ────────────────────────────────────────────
+  // 5. Databases (SQL & NoSQL)
   {
     id: "databases",
     title: "Databases",
@@ -461,7 +461,7 @@ export const quizzes: Quiz[] = [
     },
   },
 
-  // ── 6. System Design ─────────────────────────────────────────────────────
+  // 6. System Design
   {
     id: "system-design",
     title: "System Design",
@@ -555,7 +555,7 @@ export const quizzes: Quiz[] = [
     },
   },
 
-  // ── 7. DevOps & CI/CD ────────────────────────────────────────────────────
+  // 7. DevOps & CI/CD
   {
     id: "devops",
     title: "DevOps & CI/CD",
@@ -648,7 +648,7 @@ export const quizzes: Quiz[] = [
     },
   },
 
-  // ── 8. Data Structures & Algorithms ─────────────────────────────────────
+  // 8. Data Structures & Algorithms
   {
     id: "dsa",
     title: "Data Structures & Algorithms",
@@ -731,7 +731,7 @@ export const quizzes: Quiz[] = [
     },
   },
 
-  // ── 9. CSS & Web Design ──────────────────────────────────────────────────
+  // 9. CSS & Web Design
   {
     id: "css-design",
     title: "CSS & Web Design",

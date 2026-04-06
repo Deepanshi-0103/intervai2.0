@@ -13,7 +13,7 @@ export {
 
 export type { CandidateProfile } from "@/lib/interview/buildCandidateProfile";
 
-// ─── Backwards-compatible text-only helper ──────────────────────────────────
+// Backwards-compatible text-only helper
 import { buildCandidateProfile, profileToText } from "@/lib/interview/buildCandidateProfile";
 
 /**

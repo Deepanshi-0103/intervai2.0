@@ -15,10 +15,10 @@ import { saveSession } from "@/firebase/saveSession";
 import type { CandidateProfile } from "@/lib/interview/buildCandidateProfile";
 import type { TranscriptEntry } from "@/firebase/saveSession";
 
-// ─── Stage type ───────────────────────────────────────────────────────────────
+// Stage type
 type Stage = "intro" | "loading" | "interview" | "finished";
 
-// ─── Inline icons ─────────────────────────────────────────────────────────────
+// Inline icons
 const MicIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
     <path d="M12 1a4 4 0 0 0-4 4v7a4 4 0 0 0 8 0V5a4 4 0 0 0-4-4Z" />
@@ -52,7 +52,7 @@ const ArrowRightIcon = () => (
   </svg>
 );
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+// Main Component
 export default function InterviewPage() {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
@@ -62,19 +62,19 @@ export default function InterviewPage() {
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // ── Stage state ──────────────────────────────────────────────────────────────
+  // Stage state
   const [stage, setStage] = useState<Stage>("intro");
 
-  // ── STAGE 1: Intro ───────────────────────────────────────────────────────────
+  // STAGE 1: Intro
   const [introIndex, setIntroIndex] = useState(0);
   const [introAnswers, setIntroAnswers] = useState<string[]>([]);
   const [introChatLog, setIntroChatLog] = useState<TranscriptEntry[]>([]);
   const [introBuffer, setIntroBuffer] = useState("");
 
-  // ── STAGE 2: Loading ─────────────────────────────────────────────────────────
+  // STAGE 2: Loading
   const [loadingStatus, setLoadingStatus] = useState("Analysing your profile…");
 
-  // ── STAGE 3: Interview ───────────────────────────────────────────────────────
+  // STAGE 3: Interview
   const [profile, setProfile] = useState<CandidateProfile | null>(null);
   const [profileId, setProfileId] = useState<string>("");
   const [aiQuestions, setAiQuestions] = useState<string[]>([]);
@@ -84,20 +84,20 @@ export default function InterviewPage() {
   const [interviewBuffer, setInterviewBuffer] = useState("");
   const [aiIsSpeaking, setAiIsSpeaking] = useState(false);
 
-  // ── STAGE 4: Finished ────────────────────────────────────────────────────────
+  // STAGE 4: Finished
   const [isSaving, setIsSaving] = useState(false);
   const [savedSessionId, setSavedSessionId] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  // ── Timer ────────────────────────────────────────────────────────────────────
+  // Timer
   const [elapsed, setElapsed] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // ── Scroll refs ──────────────────────────────────────────────────────────────
+  // Scroll refs
   const introChatEndRef = useRef<HTMLDivElement>(null);
   const interviewChatEndRef = useRef<HTMLDivElement>(null);
 
-  // ── Speech hooks ─────────────────────────────────────────────────────────────
+  // Speech hooks
   const {
     transcript: speechTranscript,
     interimTranscript,
@@ -114,10 +114,10 @@ export default function InterviewPage() {
     cancel: cancelSpeech,
   } = useSpeechSynthesis();
 
-  // ── Hydration guard ──────────────────────────────────────────────────────────
+  // Hydration guard
   useEffect(() => setMounted(true), []);
 
-  // ── Auth guard ───────────────────────────────────────────────────────────────
+  // Auth guard
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u);
@@ -127,7 +127,7 @@ export default function InterviewPage() {
     return unsub;
   }, [router]);
 
-  // ── Timer ────────────────────────────────────────────────────────────────────
+  // Timer
   const startTimer = useCallback(() => {
     timerRef.current = setInterval(() => setElapsed((s) => s + 1), 1000);
   }, []);
@@ -140,7 +140,7 @@ export default function InterviewPage() {
     return `${m}:${sec}`;
   };
 
-  // ── Kick off intro when authed ────────────────────────────────────────────────
+  // Kick off intro when authed
   useEffect(() => {
     if (!authLoading && user) {
       setIntroChatLog([{ role: "ai", text: predefinedQuestions[0].question }]);
@@ -155,13 +155,13 @@ export default function InterviewPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, user]);
 
-  // ── Sync speech transcript into current buffer ────────────────────────────────
+  // Sync speech transcript into current buffer
   useEffect(() => {
     if (stage === "intro") setIntroBuffer(speechTranscript);
     if (stage === "interview") setInterviewBuffer(speechTranscript);
   }, [speechTranscript, stage]);
 
-  // ── Scroll to bottom ─────────────────────────────────────────────────────────
+  // Scroll to bottom
   useEffect(() => {
     introChatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [introChatLog, interimTranscript]);
@@ -169,7 +169,7 @@ export default function InterviewPage() {
     interviewChatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [interviewLog, interimTranscript]);
 
-  // ── Mic toggle ───────────────────────────────────────────────────────────────
+  // Mic toggle
   const handleMicToggle = useCallback(() => {
     if (isListening) {
       stopListening();
@@ -179,9 +179,9 @@ export default function InterviewPage() {
     }
   }, [isListening, startListening, stopListening, cancelSpeech]);
 
-  // ────────────────────────────────────────────────────────────────────────────
+
   // STAGE 1: Next intro question
-  // ────────────────────────────────────────────────────────────────────────────
+
   const handleIntroNext = useCallback(async () => {
     if (isListening) stopListening();
 
@@ -204,7 +204,7 @@ export default function InterviewPage() {
     const nextIndex = introIndex + 1;
 
     if (nextIndex >= predefinedQuestions.length) {
-      // ── All intro questions done → move to loading stage ─────────────────────
+      // All intro questions done → move to loading stage
       cancelSpeech();
       setStage("loading");
       await runLoadingStage(newAnswers);
@@ -219,9 +219,9 @@ export default function InterviewPage() {
     introChatLog, introIndex, cancelSpeech, speak, resetTranscript,
   ]);
 
-  // ────────────────────────────────────────────────────────────────────────────
+
   // STAGE 2: Loading — build profile, save it, generate AI questions
-  // ────────────────────────────────────────────────────────────────────────────
+
   const runLoadingStage = useCallback(
     async (answers: string[]) => {
       try {
@@ -267,9 +267,9 @@ export default function InterviewPage() {
     [user, speak]
   );
 
-  // ────────────────────────────────────────────────────────────────────────────
+
   // STAGE 3: Next AI interview question
-  // ────────────────────────────────────────────────────────────────────────────
+
   const handleInterviewNext = useCallback(async () => {
     if (isListening) stopListening();
     cancelSpeech();
@@ -291,7 +291,7 @@ export default function InterviewPage() {
     const nextIndex = interviewIndex + 1;
 
     if (nextIndex >= aiQuestions.length) {
-      // ── All AI questions answered → save and finish ────────────────────────
+      // All AI questions answered → save and finish
       stopTimer();
       setStage("finished");
       setIsSaving(true);
@@ -319,7 +319,7 @@ export default function InterviewPage() {
         setIsSaving(false);
       }
     } else {
-      // ── Ask next AI question ──────────────────────────────────────────────
+      // Ask next AI question
       setInterviewIndex(nextIndex);
       const nextQ = aiQuestions[nextIndex];
       setInterviewLog((prev) => [...prev, { role: "ai", text: nextQ }]);
@@ -333,7 +333,7 @@ export default function InterviewPage() {
     user, profileId, stopTimer, speak, resetTranscript,
   ]);
 
-  // ── Render guard ─────────────────────────────────────────────────────────────
+  // Render guard
   if (!mounted || authLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-[#080d1a]">
@@ -344,9 +344,9 @@ export default function InterviewPage() {
 
   const isDark = theme === "dark";
 
-  // ════════════════════════════════════════════════════════════════════════════
+
   // STAGE: LOADING
-  // ════════════════════════════════════════════════════════════════════════════
+
   if (stage === "loading") {
     return (
       <div className={`flex h-screen flex-col items-center justify-center gap-10 px-6 ${isDark ? "bg-[#080d1a] text-white" : "bg-slate-50 text-slate-900"}`}>
@@ -387,9 +387,9 @@ export default function InterviewPage() {
     );
   }
 
-  // ════════════════════════════════════════════════════════════════════════════
+
   // STAGE: FINISHED
-  // ════════════════════════════════════════════════════════════════════════════
+
   if (stage === "finished") {
     return (
       <div className={`flex h-screen flex-col items-center justify-center gap-8 px-6 ${isDark ? "bg-[#080d1a] text-white" : "bg-slate-50 text-slate-900"}`}>
@@ -438,7 +438,7 @@ export default function InterviewPage() {
 
         <button
           onClick={() => router.push("/dashboard")}
-          className="rounded-full bg-blue-600 px-8 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-blue-500 active:scale-95"
+          className="shimmer-btn rounded-full bg-blue-600 px-8 py-3 text-sm font-semibold text-white shadow-lg transition-transform hover:scale-[1.02] active:scale-95"
         >
           Go to Dashboard
         </button>
@@ -446,9 +446,9 @@ export default function InterviewPage() {
     );
   }
 
-  // ════════════════════════════════════════════════════════════════════════════
+
   // SHARED LAYOUT (intro + interview stages)
-  // ════════════════════════════════════════════════════════════════════════════
+
   const isIntro = stage === "intro";
   const currentIntroQ = predefinedQuestions[introIndex];
   const currentInterviewQ = aiQuestions[interviewIndex] ?? "";
@@ -466,7 +466,6 @@ export default function InterviewPage() {
   return (
     <div className={`flex h-screen flex-col transition-colors duration-300 ${isDark ? "bg-[#080d1a] text-white" : "bg-slate-100 text-slate-900"}`}>
 
-      {/* ── Header ──────────────────────────────────────────────────────────── */}
       <header className={`flex h-14 shrink-0 items-center justify-between border-b px-5 ${isDark ? "border-white/10 bg-[#0b1120]" : "border-slate-200 bg-white"}`}>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
@@ -505,10 +504,10 @@ export default function InterviewPage() {
         </div>
       </header>
 
-      {/* ── Body ────────────────────────────────────────────────────────────── */}
+      {/* Body */}
       <div className="flex flex-1 overflow-hidden">
 
-        {/* ── LEFT PANEL ───────────────────────────────────────────────────── */}
+        {/* LEFT PANEL */}
         <div className={`flex w-5/12 flex-col items-center justify-center gap-8 px-8 ${isDark ? "bg-[#080d1a]" : "bg-slate-100"}`}>
 
           {/* Progress */}
@@ -592,7 +591,7 @@ export default function InterviewPage() {
           )}
         </div>
 
-        {/* ── RIGHT PANEL ──────────────────────────────────────────────────── */}
+        {/* RIGHT PANEL */}
         <div className={`flex w-7/12 flex-col border-l ${isDark ? "border-white/10 bg-[#0b1120]" : "border-slate-200 bg-white"}`}>
 
           {/* Camera placeholder */}
@@ -681,7 +680,7 @@ export default function InterviewPage() {
             {/* Next / End */}
             <button
               onClick={handleNext}
-              className="flex items-center gap-2 rounded-full bg-blue-600/20 px-5 py-3 text-sm font-semibold text-blue-400 ring-1 ring-blue-500/30 transition hover:bg-blue-600/30 active:scale-95"
+              className="shimmer-btn flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition hover:bg-blue-500 active:scale-95"
             >
               <ArrowRightIcon />
               {isLastQ ? "Finish Interview" : "Next Question"}
@@ -690,13 +689,6 @@ export default function InterviewPage() {
         </div>
       </div>
 
-      {/* Bounce animation */}
-      <style>{`
-        @keyframes bounce {
-          0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
-          40% { transform: translateY(-4px); opacity: 1; }
-        }
-      `}</style>
     </div>
   );
 }

@@ -7,7 +7,7 @@
  * If you prefer a real Zustand store, install: npm install zustand
  */
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// Types
 
 export interface TranscriptMessage {
     role: "ai" | "user";
@@ -40,7 +40,7 @@ export const defaultInterviewState: InterviewState = {
     sessionId: null,
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 // Simple helper to build an AI transcript entry
 export function aiMessage(text: string): TranscriptMessage {
     return { role: "ai", text, timestamp: Date.now() };

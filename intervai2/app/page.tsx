@@ -59,21 +59,21 @@ export default function Home() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // ── Navbar slide in
+      // Navbar slide in
       gsap.fromTo(
         navRef.current,
         { y: -80, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.9, ease: "power3.out" }
       );
 
-      // ── Hero badge pop
+      // Hero badge pop
       gsap.fromTo(
         badgeRef.current,
         { scale: 0.6, opacity: 0 },
         { scale: 1, opacity: 1, duration: 0.6, delay: 0.4, ease: "back.out(1.7)" }
       );
 
-      // ── Headline stagger letters via SplitText fallback (word by word)
+      // Headline stagger letters via SplitText fallback (word by word)
       gsap.fromTo(
         headlineRef.current,
         { y: 60, opacity: 0, skewY: 4 },
@@ -98,14 +98,14 @@ export default function Home() {
         { x: 0, opacity: 1, duration: 0.6, delay: 1.3, ease: "power3.out" }
       );
 
-      // ── Hero card slide in from right
+      // Hero card slide in from right
       gsap.fromTo(
         heroCardRef.current,
         { x: 100, opacity: 0, rotateY: 15 },
         { x: 0, opacity: 1, rotateY: 0, duration: 1, delay: 0.7, ease: "power3.out" }
       );
 
-      // ── Robot floating animation
+      // Robot floating animation
       gsap.to(robotRef.current, {
         y: -18,
         duration: 2.8,
@@ -114,7 +114,7 @@ export default function Home() {
         ease: "sine.inOut",
       });
 
-      // ── Glow pulse
+      // Glow pulse
       gsap.to(glowRef.current, {
         scale: 1.3,
         opacity: 0.6,
@@ -124,7 +124,7 @@ export default function Home() {
         ease: "sine.inOut",
       });
 
-      // ── Ambient orbs
+      // Ambient orbs
       gsap.to(orb1Ref.current, {
         x: 40,
         y: 30,
@@ -142,7 +142,7 @@ export default function Home() {
         ease: "sine.inOut",
       });
 
-      // ── How It Works section - scroll triggered
+      // How It Works section - scroll triggered
       gsap.fromTo(
         howTitleRef.current,
         { y: 50, opacity: 0 },
@@ -208,11 +208,11 @@ export default function Home() {
 
   return (
     <div className={`min-h-screen ${t.bg} ${t.text} overflow-x-hidden relative transition-colors duration-500`}>
-      {/* ──── Ambient Background Orbs ──── */}
+      {/* Ambient Background Orbs */}
       <div ref={orb1Ref} className="fixed top-0 left-[10%] w-[600px] h-[600px] rounded-full bg-blue-700/20 blur-[140px] pointer-events-none z-0" />
       <div ref={orb2Ref} className="fixed bottom-0 right-[5%] w-[500px] h-[500px] rounded-full bg-indigo-700/15 blur-[120px] pointer-events-none z-0" />
 
-      {/* ──────────────── NAVBAR ──────────────── */}
+      {/* NAVBAR */}
       <nav
         ref={navRef}
         className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-10 py-4 mx-auto border-b ${t.navBg}`}
@@ -260,7 +260,7 @@ export default function Home() {
           {!loading && (
             <>
               {user ? (
-                /* ── Authenticated: user avatar + logout ── */
+                /* Authenticated: user avatar + logout */
                 <div className="hidden md:flex items-center gap-2">
                   {user.photoURL ? (
                     <img
@@ -281,7 +281,7 @@ export default function Home() {
                   </button>
                 </div>
               ) : (
-                /* ── Unauthenticated: login link ── */
+                /* Unauthenticated: login link */
                 <Link
                   href="/login"
                   className={`hidden md:block text-sm font-medium transition ${t.loginBtn}`}
@@ -335,7 +335,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* ──────────────── HERO SECTION ──────────────── */}
+      {/* HERO SECTION */}
       <section className="relative max-w-7xl mx-auto px-6 md:px-8 pt-36 pb-28 grid md:grid-cols-2 gap-12 items-center z-10">
         {/* Left Content */}
         <div>
@@ -504,7 +504,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ──────────────── HOW IT WORKS ──────────────── */}
+      {/* HOW IT WORKS */}
       <section className={`${t.sectionBg} py-24 relative z-10`}>
         <div className="max-w-6xl mx-auto px-6 md:px-8">
           <div ref={howTitleRef} className="text-center mb-16">
@@ -579,7 +579,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ──────────────── FOOTER ──────────────── */}
+      {/* FOOTER */}
       <footer className={`relative z-10 border-t ${t.footerBg} py-8 px-6 md:px-8`}>
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">

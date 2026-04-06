@@ -82,7 +82,6 @@ export default function LoginPage() {
     }
   };
 
-  // Theme tokens
   const t = {
     pageBg: isDark ? "bg-[#080d1a]" : "bg-gradient-to-br from-slate-100 to-blue-50",
     cardBg: isDark

@@ -3,6 +3,8 @@
 import { Suspense, use, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthListener, useTheme } from "@/lib/auth";
+import { db } from "@/lib/firebase";
+import { collection, addDoc } from "firebase/firestore";
 import { getQuiz } from "@/lib/quizData";
 import type { Level, Question } from "@/lib/quizData";
 import { recordActivity } from "@/app/components/ui/StreakHeatmap";
@@ -19,14 +21,14 @@ interface AnswerRecord {
   correct: boolean;
 }
 
-// ── Level colours ─────────────────────────────────────────────────────────────
+// Level colours
 const LEVEL_META: Record<Level, { label: string; color: string; bg: string }> = {
   easy:   { label: "Easy",   color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/30" },
   medium: { label: "Medium", color: "text-amber-400",   bg: "bg-amber-500/10   border-amber-500/30"   },
   hard:   { label: "Hard",   color: "text-red-400",     bg: "bg-red-500/10     border-red-500/30"     },
 };
 
-// ── Grade helper ──────────────────────────────────────────────────────────────
+// Grade helper
 function grade(score: number, total: number) {
   const pct = score / total;
   if (pct === 1)   return { label: "Perfect! 🏆",       color: "text-yellow-400" };
@@ -63,8 +65,19 @@ function QuizSession({ params }: { params: Promise<{ quizId: string }> }) {
     if (phase === "result" && user && !streakRecorded.current) {
       streakRecorded.current = true;
       recordActivity(user.uid).catch(console.error);
+
+      // Save quiz score for Analytics
+      const score = answers.filter((a) => a.correct).length;
+      addDoc(collection(db, "quizResults"), {
+        userId: user.uid,
+        domain: quizId,
+        level,
+        score,
+        totalQuestions: questions.length,
+        createdAt: new Date()
+      }).catch(console.error);
     }
-  }, [phase, user]);
+  }, [phase, user, answers, quizId, level, questions.length]);
 
   if (loading || !user) return null;
   if (!quiz) {
@@ -83,10 +96,9 @@ function QuizSession({ params }: { params: Promise<{ quizId: string }> }) {
   const totalQ      = questions.length;
   const score       = answers.filter((a) => a.correct).length;
 
-  // ── Theme tokens ────────────────────────────────────────────────────────────
   const t = {
     pageBg:  isDark ? "bg-[#0f1629]" : "bg-[#f0f4ff]",
-    card:    isDark ? "bg-[#141b2d] border-white/5"   : "bg-white border-gray-200 shadow-sm",
+    card:    isDark ? "bg-[#141b2d] border-white/5 card-hover"   : "bg-white border-gray-200 shadow-sm card-hover",
     heading: isDark ? "text-white"   : "text-gray-900",
     sub:     isDark ? "text-gray-400" : "text-gray-500",
     back:    isDark ? "text-gray-400 hover:text-white" : "text-gray-500 hover:text-gray-900",
@@ -95,7 +107,7 @@ function QuizSession({ params }: { params: Promise<{ quizId: string }> }) {
       : "border-gray-200 hover:border-blue-400 hover:bg-blue-50 text-gray-700",
   };
 
-  // ── Handlers ─────────────────────────────────────────────────────────────
+  // Handlers
   const handleChoose = (idx: number) => {
     if (revealed) return;
     setChosen(idx);
@@ -125,7 +137,7 @@ function QuizSession({ params }: { params: Promise<{ quizId: string }> }) {
     streakRecorded.current = false;
   };
 
-  // ── Option styling ────────────────────────────────────────────────────────
+  // Option styling
   const optionStyle = (idx: number): string => {
     if (!revealed) return `border ${t.optBase} rounded-xl px-4 py-3 text-sm font-medium transition-all cursor-pointer`;
     if (idx === q.correctIndex) return "border border-emerald-500/60 bg-emerald-500/10 rounded-xl px-4 py-3 text-sm font-semibold text-emerald-400 cursor-default";
@@ -133,13 +145,13 @@ function QuizSession({ params }: { params: Promise<{ quizId: string }> }) {
     return `border ${isDark ? "border-white/5" : "border-gray-100"} rounded-xl px-4 py-3 text-sm ${t.sub} cursor-default opacity-50`;
   };
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // ── INTRO PHASE ─────────────────────────────────────────────────────────
-  // ═══════════════════════════════════════════════════════════════════════════
+
+  // INTRO PHASE
+
   if (phase === "intro") {
     return (
       <div className={`min-h-screen ${t.pageBg} flex items-center justify-center p-6 transition-colors`}>
-        <div className={`${t.card} border rounded-2xl p-8 max-w-md w-full space-y-6`}>
+        <div className={`${t.card} border rounded-2xl p-8 max-w-md w-full space-y-6`} style={{ animation: "fadeUp 0.4s ease both" }}>
           {/* Back */}
           <button onClick={() => router.push("/quiz")} className={`flex items-center gap-1.5 text-sm ${t.back} transition`}>
             <ChevronLeft size={16} /> All Quizzes
@@ -179,7 +191,7 @@ function QuizSession({ params }: { params: Promise<{ quizId: string }> }) {
           {/* Start */}
           <button
             onClick={() => setPhase("quiz")}
-            className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-semibold text-sm transition-all hover:scale-[1.02] shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2"
+            className="shimmer-btn w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-semibold text-sm transition-transform hover:scale-[1.02] shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2"
           >
             <BookOpen size={16} /> Start Quiz
           </button>
@@ -188,15 +200,15 @@ function QuizSession({ params }: { params: Promise<{ quizId: string }> }) {
     );
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // ── QUIZ PHASE ──────────────────────────────────────────────────────────
-  // ═══════════════════════════════════════════════════════════════════════════
+
+  // QUIZ PHASE
+
   if (phase === "quiz") {
     const progress = ((current) / totalQ) * 100;
 
     return (
       <div className={`min-h-screen ${t.pageBg} flex items-center justify-center p-6 transition-colors`}>
-        <div className={`${t.card} border rounded-2xl p-6 md:p-8 max-w-2xl w-full space-y-6`}>
+        <div className={`${t.card} border rounded-2xl p-6 md:p-8 max-w-2xl w-full space-y-6`} style={{ animation: "fadeUp 0.3s ease both" }}>
 
           {/* Top bar */}
           <div className="flex items-center justify-between">
@@ -229,9 +241,10 @@ function QuizSession({ params }: { params: Promise<{ quizId: string }> }) {
           <div className="space-y-3">
             {q.options.map((opt, idx) => (
               <button
-                key={idx}
+                key={`${current}-${idx}`}
                 onClick={() => handleChoose(idx)}
-                className={`w-full text-left flex items-center gap-3 ${optionStyle(idx)}`}
+                className={`w-full text-left flex items-center gap-3 chip-hover ${optionStyle(idx)}`}
+                style={{ animation: `fadeUp 0.3s ease ${idx * 60}ms both` }}
               >
                 {/* Letter badge */}
                 <span className={`w-7 h-7 rounded-lg flex-shrink-0 flex items-center justify-center text-xs font-bold ${
@@ -258,8 +271,9 @@ function QuizSession({ params }: { params: Promise<{ quizId: string }> }) {
           {/* Next button */}
           {revealed && (
             <button
-              onClick={handleNext}
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-semibold text-sm transition-all hover:scale-[1.02] shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2"
+               onClick={handleNext}
+               style={{ animation: "slideDown 0.3s ease both" }}
+               className="shimmer-btn w-full bg-blue-600 text-white py-3 rounded-xl font-semibold text-sm transition-transform hover:scale-[1.02] shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2"
             >
               {current + 1 < totalQ ? (<>Next Question <ChevronRight size={16} /></>) : (<>See Results <Trophy size={16} /></>)}
             </button>
@@ -269,9 +283,9 @@ function QuizSession({ params }: { params: Promise<{ quizId: string }> }) {
     );
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // ── RESULT PHASE ────────────────────────────────────────────────────────
-  // ═══════════════════════════════════════════════════════════════════════════
+
+  // RESULT PHASE
+
   const { label: gradeLabel, color: gradeColor } = grade(score, totalQ);
   const pct = Math.round((score / totalQ) * 100);
 
@@ -280,7 +294,7 @@ function QuizSession({ params }: { params: Promise<{ quizId: string }> }) {
       <div className="max-w-2xl w-full space-y-6">
 
         {/* Score card */}
-        <div className={`${t.card} border rounded-2xl p-8 text-center space-y-4`}>
+        <div className={`${t.card} border rounded-2xl p-8 text-center space-y-4`} style={{ animation: "fadeUp 0.4s ease both" }}>
           <div className={`text-3xl font-bold ${gradeColor}`}>{gradeLabel}</div>
 
           {/* Circular score */}
@@ -337,7 +351,7 @@ function QuizSession({ params }: { params: Promise<{ quizId: string }> }) {
             </button>
             <button
               onClick={() => router.push("/quiz")}
-              className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl text-sm font-semibold transition-all hover:scale-[1.02] shadow-lg shadow-blue-600/25"
+              className="shimmer-btn flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-xl text-sm font-semibold transition-transform hover:scale-[1.02] shadow-lg shadow-blue-600/25"
             >
               <LayoutGrid size={15} /> All Quizzes
             </button>
@@ -345,10 +359,10 @@ function QuizSession({ params }: { params: Promise<{ quizId: string }> }) {
         </div>
 
         {/* Per-question review */}
-        <div className={`${t.card} border rounded-2xl p-6 space-y-4`}>
+        <div className={`${t.card} border rounded-2xl p-6 space-y-4`} style={{ animation: "fadeUp 0.4s ease 200ms both" }}>
           <h2 className={`text-base font-bold ${t.heading}`}>Question Review</h2>
           {answers.map((ans, i) => (
-            <div key={i} className={`border rounded-xl p-4 space-y-2 ${ans.correct ? (isDark ? "border-emerald-500/20 bg-emerald-500/5" : "border-emerald-300 bg-emerald-50") : (isDark ? "border-red-500/20 bg-red-500/5" : "border-red-200 bg-red-50")}`}>
+            <div key={i} style={{ animation: `slideDown 0.3s ease ${300 + (i * 80)}ms both` }} className={`border rounded-xl p-4 space-y-2 ${ans.correct ? (isDark ? "border-emerald-500/20 bg-emerald-500/5" : "border-emerald-300 bg-emerald-50") : (isDark ? "border-red-500/20 bg-red-500/5" : "border-red-200 bg-red-50")}`}>
               <div className="flex items-start gap-2">
                 {ans.correct
                   ? <CheckCircle2 size={16} className="text-emerald-400 flex-shrink-0 mt-0.5" />

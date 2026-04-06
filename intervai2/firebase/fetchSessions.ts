@@ -16,6 +16,7 @@ export interface SessionSummary {
     answers: string[];
     createdAt: Date;
     hasFeedback: boolean;
+    feedback?: any; // The full feedback object
 }
 
 /**
@@ -55,6 +56,7 @@ export async function fetchUserSessions(userId: string): Promise<SessionSummary[
                 answers: data.answers ?? [],
                 createdAt: data.createdAt?.toDate?.() ?? new Date(),
                 hasFeedback: !!data.feedback,
+                feedback: data.feedback ?? undefined,
             };
         })
     );

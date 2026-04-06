@@ -68,7 +68,7 @@ export async function POST(request: Request) {
 
         const genAI = new GoogleGenerativeAI(apiKey);
 
-        // ── Determine difficulty tier from experience ──────────────────────────
+        // Determine difficulty tier from experience
         const tier = getDifficultyTier(profile.experience);
 
         const prompt = `You are an expert technical interviewer. Generate exactly 5 interview questions for the following candidate.

@@ -13,14 +13,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { signOut } from "@/lib/auth";
 
-// ── Level config ──────────────────────────────────────────────────────────────
+// Level config
 const LEVELS: { id: Level; label: string; icon: React.ReactNode; color: string; ring: string }[] = [
   { id: "easy",   label: "Easy",   icon: <Zap size={11} />,    color: "text-emerald-400", ring: "bg-emerald-500/10 border-emerald-500/30 hover:bg-emerald-500/20" },
   { id: "medium", label: "Medium", icon: <Shield size={11} />, color: "text-amber-400",   ring: "bg-amber-500/10   border-amber-500/30   hover:bg-amber-500/20"   },
   { id: "hard",   label: "Hard",   icon: <Flame size={11} />,  color: "text-red-400",     ring: "bg-red-500/10    border-red-500/30     hover:bg-red-500/20"     },
 ];
 
-// ── Sidebar nav (mirrors dashboard layout) ────────────────────────────────────
+// Sidebar nav (mirrors dashboard layout)
 const navItems = [
   { label: "Dashboard",     icon: LayoutDashboard, href: "/dashboard" },
   { label: "Interviews",    icon: Mic,             href: "/dashboard/interviews" },
@@ -49,7 +49,6 @@ export default function QuizPage() {
   const setLevel  = (id: string, level: Level) =>
     setSelectedLevels((prev) => ({ ...prev, [id]: level }));
 
-  // ── Theme tokens ────────────────────────────────────────────────────────────
   const t = {
     pageBg:      isDark ? "bg-[#0f1629]" : "bg-[#f0f4ff]",
     sidebar:     isDark ? "bg-[#0a0f1e] border-white/5" : "bg-white border-gray-200",
@@ -65,13 +64,12 @@ export default function QuizPage() {
     toggleBtn:   isDark ? "bg-white/10 hover:bg-white/20 text-yellow-300" : "bg-gray-100 hover:bg-gray-200 text-gray-600",
     heading:     isDark ? "text-white" : "text-gray-900",
     sub:         isDark ? "text-gray-400" : "text-gray-500",
-    card:        isDark ? "bg-[#141b2d] border-white/5 hover:border-blue-500/30" : "bg-white border-gray-200 hover:border-blue-400/40 shadow-sm",
+    card:        isDark ? "bg-[#141b2d] border-white/5 hover:border-blue-500/30 card-hover" : "bg-white border-gray-200 hover:border-blue-400/40 shadow-sm card-hover",
   };
 
   return (
     <div className={`min-h-screen ${t.pageBg} flex transition-colors duration-300`}>
 
-      {/* ── SIDEBAR ──────────────────────────────────────────────────────── */}
       <aside className={`fixed top-0 left-0 h-full w-[168px] ${t.sidebar} border-r flex flex-col z-30 transition-colors duration-300`}>
 
         {/* Logo + theme toggle */}
@@ -94,7 +92,6 @@ export default function QuizPage() {
           </button>
         </div>
 
-        {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-1">
           {navItems.map(({ label, icon: Icon, href }) => {
             const active = href === "/quiz" ? true : false; // we are on quiz
@@ -111,7 +108,6 @@ export default function QuizPage() {
           })}
         </nav>
 
-        {/* User section */}
         <div className={`px-3 py-4 border-t ${t.userBorder} relative`}>
           <button
             className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all duration-200 group ${t.userHover}`}
@@ -145,11 +141,10 @@ export default function QuizPage() {
         </div>
       </aside>
 
-      {/* ── MAIN CONTENT ─────────────────────────────────────────────────── */}
+      {/* MAIN CONTENT */}
       <main className="ml-[168px] flex-1 min-h-screen overflow-y-auto">
         <div className="p-6 md:p-10 space-y-8">
 
-          {/* Header */}
           <div>
             <div className="flex items-center gap-3 mb-1">
               <div className="w-10 h-10 rounded-xl bg-blue-500/15 border border-blue-500/20 flex items-center justify-center">
@@ -174,13 +169,14 @@ export default function QuizPage() {
 
           {/* 3-column grid of quiz cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {quizzes.map((quiz) => {
+            {quizzes.map((quiz, i) => {
               const currentLevel = getLevel(quiz.id);
               const levelCfg = LEVELS.find((l) => l.id === currentLevel)!;
               return (
                 <div
                   key={quiz.id}
-                  className={`${t.card} border rounded-2xl p-5 flex flex-col gap-4 transition-all duration-200 group`}
+                  className={`${t.card} border rounded-2xl p-5 flex flex-col gap-4 group`}
+                  style={{ animation: `fadeUp 0.4s ease ${i * 80}ms both` }}
                 >
                   {/* Card header */}
                   <div className="flex items-start justify-between">
@@ -227,7 +223,7 @@ export default function QuizPage() {
                     </div>
                     <button
                       onClick={() => router.push(`/quiz/${quiz.id}?level=${currentLevel}`)}
-                      className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-semibold transition-all hover:scale-[1.04] shadow-lg shadow-blue-600/20"
+                      className="shimmer-btn flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-lg shadow-blue-600/20"
                     >
                       Start <ChevronRight size={13} />
                     </button>

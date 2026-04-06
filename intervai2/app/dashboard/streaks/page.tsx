@@ -59,7 +59,6 @@ export default function StreaksPage() {
 
     return (
         <div className="p-6 md:p-10 space-y-8">
-            {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-orange-500/15 border border-orange-500/20 flex items-center justify-center">
